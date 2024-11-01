@@ -1,11 +1,11 @@
 import cv2 as cv
 from cv2 import aruco
-import os
-directory = r'C:\Users\caleb\HURC\test folder\generate_markers'
-os.chdir(directory)
+#import os
+#directory = r'C:\Users\caleb\URC\urc\ar_detection\generate_markers'
+#os.chdir(directory)
 
 # dictionary to specify type of the marker
-marker_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_250)
+marker_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 
 # MARKER_ID = 0
 MARKER_SIZE = 400
@@ -16,6 +16,3 @@ for id in range(20): # generate 20 markers
     marker_image = aruco.generateImageMarker(marker_dict, id, MARKER_SIZE)
     cv.imshow("img", marker_image)
     cv.imwrite(f"markers/marker_{id}.png", marker_image)
-    print("marker" + str(id))
-    #cv.waitKey(0)
-    #break
