@@ -90,12 +90,12 @@ typedef hash_map<state, float, state_hash, equal_to<state> > dsl_oh;
 
 
 // D* lite algo itself
-class Dstar_lite {
+class DstarLite {
 
     // these should be all we need to interface with and run D* lite
     public:
 
-        Dstar_lite();
+        DstarLite();
         void init(int sX, int sY, int gX, int gY);  // start and goal pos
         void updateCell(int x, int y, double val);  // pos to update
         void updateStart(int x, int y);             // new start pos
@@ -113,31 +113,31 @@ class Dstar_lite {
         state s_start, s_goal, s_last;
         int maxSteps;    // to prevent infinite loops
 
-        dsl_pq prio_queue;
-        dsl_ch cell_info_hash;
-        dsl_oh cell_open_hash;
+        dsl_pq prioQueue;
+        dsl_ch cellInfoHash;
+        dsl_oh cellOpenHash;
 
         // intrenal functions that we need, explained in d_lite.cc
         bool   close(double x, double y);
-        void   makeNewCell(state u);
-        double getG(state u);
-        double getRHS(state u);
-        void   setG(state u, double g);
-        double setRHS(state u, double rhs);
-        double eightCondist(state a, state b);
+        void   makeNewCell(state s);
+        double getG(state s);
+        double getRHS(state s);
+        void   setG(state s, double g);
+        void   setRHS(state s, double rhs);
+        double eightDist(state a, state b);
         int    computeShortestPath(); // path computation
-        void   updateVertex(state u);
-        void   insert(state u);
-        void   remove(state u);
+        void   updateVertex(state s);
+        void   insert(state s);
+        void   remove(state s);
         double trueDist(state a, state b);
         double heuristic(state a, state b); // heursitc function
-        state  calculateKey(state u); // key value
-        void   getSucc(state u, list<state> &s); // next nodes
-        void   getPred(state u, list<state> &s); // prev nodes
+        state  calculateKey(state s); // key value
+        void   getSucc(state s, list<state> &sts); // next nodes
+        void   getPred(state s, list<state> &sts); // prev nodes
         double cost(state a, state b);
-        bool   occupied(state u);   // inaccesible 
-        bool   isValid(state u);
-        float  keyHashCode(state u);
+        bool   notTraversable(state s);   // inaccesible 
+        bool   isValid(state s);
+        float  keyHashCode(state s);
 
 };
 
