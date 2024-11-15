@@ -182,11 +182,44 @@ int DstarLite::computeShortestPath() {
             return -1;
         }
 
-        // get our next state
-        state s = prioQueue.top();
-        prioQueue.pop();
+        state s;
 
-        if (!isValid(s)) continue;
+        // get our next state with lazy removal
+        while (true) {
+            s = prioQueue.top();
+            prioQueue.pop();
+
+            // if state isn't valid, try again
+            if (!isValid(s)) continue;
+            // todo look into this
+            break;
+        }
+
+        // no longer open, remove from open hash
+        cellOpenHash.erase(cellOpenHash.find(s));
+
+        state k_old = s;
+        if (k_old < calculateKey(s)) {
+            insert(s);
+        } else {
+            double sRHS = getRHS(s);
+            
+            if (getG(s) > sRHS) {
+                setG(s, sRHS);
+            } else {
+                setG(s, INF);
+            }
+
+            list<state> pred;
+            getPred(s, pred);
+
+            for (state pS : pred) {
+                updateVertex(pS);
+            }
+        }
+        
+        
+        
         
     }
     return 0;
