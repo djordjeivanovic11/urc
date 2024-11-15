@@ -126,6 +126,7 @@ class DstarLite {
         void   setRHS(state s, double rhs);
         double eightDist(state a, state b);
         int    computeShortestPath(); // path computation
+        void   updatePredVerts(state s);
         void   updateVertex(state s);
         void   insert(state s);
         void   remove(state s);

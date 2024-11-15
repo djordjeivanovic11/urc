@@ -161,7 +161,7 @@ double DstarLite::eightDist(state a, state b) {
 * computes the shortest path from start to goal,
 * per the paper
 */
-// todo finish this 
+// todo finish
 int DstarLite::computeShortestPath() {
     list<state> s;
     list<state>::iterator i;
@@ -191,7 +191,7 @@ int DstarLite::computeShortestPath() {
 
             // if state isn't valid, try again
             if (!isValid(s)) continue;
-            // todo look into this
+            // todo look into this, i should be checking more stuff here
             break;
         }
 
@@ -199,28 +199,90 @@ int DstarLite::computeShortestPath() {
         cellOpenHash.erase(cellOpenHash.find(s));
 
         state k_old = s;
-        if (k_old < calculateKey(s)) {
-            insert(s);
+        if (k_old < calculateKey(s)) { 
+            insert(s);  // key is innnacurate, put it back in w/ updated key
         } else {
             double sRHS = getRHS(s);
             
-            if (getG(s) > sRHS) {
+            // todo lowkey don't understand this part
+            if (getG(s) > sRHS) { // estimate got better
                 setG(s, sRHS);
-            } else {
+
+                // update predicate verticies
+                updatePredVerts(s);
+
+            } else { // estimate got worse
                 setG(s, INF);
+
+                // update predicate verticies and s itself
+                updatePredVerts(s);
+                updateVertex(s);
             }
 
-            list<state> pred;
-            getPred(s, pred);
-
-            for (state pS : pred) {
-                updateVertex(pS);
-            }
         }
-        
-        
-        
-        
     }
     return 0;
 }
+
+/* void DstarLite::updatePredVerts(state s)
+* udates the pred verticies
+*/
+void DstarLite::updatePredVerts(state s) {
+    list<state> pred;
+    getPred(s, pred);
+
+    for (state pS : pred) {
+        updateVertex(pS);
+    }
+}
+
+/* bool DstarLite::close(double x, double y)
+* true if x y within K_TOLERANCE
+*/
+bool close(double x, double y) {
+    if (isinf(x) && isinf(y)) return true;
+    return abs(x-y) <= K_TOLERANCE;
+}
+
+
+/* void DstarLite::updateVertex(state s)
+* updates vertex s, as per the paper
+*/
+// todo finish
+void DstarLite::updateVertex(state s){
+    if (s != s_goal) {
+        double min_rhs = INF;
+        double temp_rhs;
+        list<state> succ;
+        getSucc(s, succ);
+
+        for (state sS : succ){
+            temp_rhs = getG(sS) + cost(s, sS);
+            if (temp_rhs < min_rhs) min_rhs = temp_rhs;
+        }
+        if (!close(getRHS(s), min_rhs)) setRHS(s, min_rhs);
+
+    } if (cellOpenHash.find(s) != cellOpenHash.end()) {
+        cellOpenHash.erase(s);
+        // todo this is wrong? I honestly don't know if i need this what is the point
+        // will probably just make insert rmove it for us
+    } if (!close(getG(s), getRHS(s))) {
+        calculateKey(s); // todo do i need this (will probably end up adding this to insert) (but then again maybe not)
+        insert(s);
+    }
+}
+
+// todo finalize this and finnish it
+/* void DstarLite::insert(state s)
+* calculates key (maybe), inserts, and removes any existing options (maybe or I might leave them?)
+*/
+void DstarLite::insert(state s){
+
+    dsl_oh::iterator curr = cellOpenHash.find(s);
+    s = calculateKey(s);
+    float csum = keyHashCode(s);
+
+    // if 
+}
+
+
