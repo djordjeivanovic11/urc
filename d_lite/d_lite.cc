@@ -1,5 +1,6 @@
 #include "d_lite.hh"
 
+// this stuff is so I can maybe vizualize it at some point
 #ifdef USE_OPEN_GL
 #ifdef MACOS
 #include <OpenGL/gl.h>
@@ -62,7 +63,7 @@ void DstarLite::init(int sX, int sY, int gX ,int gY) {
     cellInfoHash.clear();
     path.clear();
     cellOpenHash.clear();
-    while(!prioQueue.empty()) prioQueue.pop();
+    while(!prioQueueHash.empty()) prioQueueHash.pop();
 
     k_m = 0;
     
@@ -157,6 +158,15 @@ double DstarLite::eightDist(state a, state b) {
     return ((M_SQRT1_2-1.0)*min + max);
 }
 
+/* double DstarLite::trueDist(state a, state b)
+* euclidean distance between two states
+*/
+double DstarLite::trueDist(state a, state b) {
+    float x = a.x - b.x;
+    float y = a.y - b.y;
+    return sqrt(x*x + y*y);
+}
+
 /* int DstarLite::computeShortestPath()
 * computes the shortest path from start to goal,
 * per the paper
@@ -166,11 +176,11 @@ int DstarLite::computeShortestPath() {
     list<state> s;
     list<state>::iterator i;
 
-    if (prioQueue.empty()) return 1;
+    if (prioQueueHash.empty()) return 1;
 
     int k = maxSteps;
-    while ((!prioQueue.empty()) && 
-            (prioQueue.top() < (s_start = calculateKey(s_start))) ||
+    while ((!prioQueueHash.empty()) && 
+            (prioQueueHash.top() < (s_start = calculateKey(s_start))) ||
             (getRHS(s_start) != getG(s_start))) {
         
         // todo
@@ -186,8 +196,8 @@ int DstarLite::computeShortestPath() {
 
         // get our next state with lazy removal
         while (true) {
-            s = prioQueue.top();
-            prioQueue.pop();
+            s = prioQueueHash.top();
+            prioQueueHash.pop();
 
             // if state isn't valid, try again
             if (!isValid(s)) continue;
@@ -282,7 +292,156 @@ void DstarLite::insert(state s){
     s = calculateKey(s);
     float csum = keyHashCode(s);
 
-    // if 
+    // return if cell is already in list with updated key
+    if ((curr != cellOpenHash.end()) && (close(csum,curr->second))) return;
+
+    cellOpenHash[s] = csum;
+    prioQueueHash.push(s);
 }
 
+/* void DstarLite::remove(state s)
+* removes state from cellOpenHash
+*/
+void DstarLite::remove(state s) {
 
+    dsl_oh::iterator curr = cellOpenHash.find(s);
+    if (curr == cellOpenHash.end()) return;
+    cellOpenHash.erase(curr);
+}
+
+/* double DstarLite::heuristic(state a, state b)
+* 8-way distance scaled by a constant
+*/
+double DstarLite::heuristic(state a, state b) {
+    return eightDist(a, b) * C1;
+}
+
+/* state DstarLite::calculateKey(state s)
+* as per the research paper
+*/
+state DstarLite::calculateKey(state s) {
+    
+    double min_val = fmin(getG(s), getRHS(s));
+
+    s.k.first = min_val + heuristic(s_start, s) + k_m;
+    s.k.second = min_val;
+
+    return s;
+}
+
+/* double DstarLite::cost(state a, state b)
+* cost to traverse from state a to state b (off state a, could also do onto state b?)
+*/
+double DstarLite::cost(state a, state b) {
+
+    int xd = fabs(a.x-b.x);
+    int yd = fabs(a.y-b.y);
+    double scale = 1;
+
+    if(xd+yd>1) scale = M_SQRT2;
+
+    if (cellInfoHash.count(a) == 0) return scale*C1;
+    return scale*cellInfoHash[a].cost;
+}
+
+/* void DstarLite::updateCell(int x, int y, double val)
+* see paper
+*/
+void DstarLite::updateCell(int x, int y, double val) {
+
+    state s;
+
+    s.x = x;
+    s.y = y;
+
+    if ((s == s_start) || (s == s_goal)) return;
+
+    makeNewCell(s);
+    cellInfoHash[s].cost = val;
+
+    updateVertex(s);
+}
+
+/* void DstarLite::getSucc(state s, list<state> &states)
+* returns list of cell neighbors
+*/
+void DstarLite::getSucc(state s, list<state> &states) {
+    
+    states.clear();
+    s.k.first = INF;
+    s.k.second = INF;
+
+    if (notTraversable(s)) return;
+    
+    s.x += 1;
+    states.push_front(s);
+    s.y += 1;
+    states.push_front(s);
+    s.x -= 1;
+    states.push_front(s);
+    s.x -= 1;
+    states.push_front(s);
+    s.y -= 1; 
+    states.push_front(s);
+    s.y -= 1;
+    states.push_front(s);
+    s.x += 1;
+    states.push_front(s);
+    s.x += 1;
+    states.push_front(s);
+}
+
+/* void DstarLite::getPred(state s, list<state> &states)
+* same as above but for pred
+*/
+void DstarLite::getPred(state s, list<state> &states) {
+    states.clear();
+    s.k.first = INF;
+    s.k.second = INF;
+
+    s.x += 1;
+    if (!notTraversable(s)) states.push_front(s);
+    s.y += 1;
+    if (!notTraversable(s)) states.push_front(s);
+    s.x -= 1;
+    if (!notTraversable(s)) states.push_front(s);
+    s.x -= 1;
+    if (!notTraversable(s)) states.push_front(s);
+    s.y -= 1; 
+    if (!notTraversable(s)) states.push_front(s);
+    s.y -= 1;
+    if (!notTraversable(s)) states.push_front(s);
+    s.x += 1;
+    if (!notTraversable(s)) states.push_front(s);
+    s.x += 1;
+    if (!notTraversable(s)) states.push_front(s);
+
+}
+
+/* void DstarLite::updateStart(int x, int y)
+* changes the pos of the robot
+*/
+void DstarLite::updateStart(int x, int y) {
+    s_start.x = x;
+    s_start.y = y;
+
+    k_m += heuristic(s_last, s_start);
+
+    s_start = calculateKey(s_start);
+    s_last = s_start;
+}
+
+// todo
+/* void DstarLite::updateGoal(int x, int y)
+* very much need this for the autonomous phase, don't know how im gonna do it yet
+* should save portions of the map that we have data on already, clear the map, 
+* then move the goal and put the non-empty cells back
+* also need it for when we first enter autonomous state
+*/
+
+// todo 
+/* bool DstarLite::replan()
+* updates the costs for all cells, computes shortest path to goal
+* true iff a path is found, false otherwise
+* I have an idea of how to do this maybe
+*/

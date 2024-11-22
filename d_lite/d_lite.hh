@@ -95,6 +95,13 @@ class DstarLite {
     // these should be all we need to interface with and run D* lite
     public:
 
+        // how to work this:
+        // init thing
+        // call replan
+        // while (start != goal):
+        // get path, move to next state in path
+        // update any cells
+        // replan, continue
         DstarLite();
         void init(int sX, int sY, int gX, int gY);  // start and goal pos
         void updateCell(int x, int y, double val);  // pos to update
@@ -113,7 +120,7 @@ class DstarLite {
         state s_start, s_goal, s_last;
         int maxSteps;    // to prevent infinite loops
 
-        dsl_pq prioQueue;
+        dsl_pq prioQueueHash;
         dsl_ch cellInfoHash;
         dsl_oh cellOpenHash;
 
@@ -125,18 +132,18 @@ class DstarLite {
         void   setG(state s, double g);
         void   setRHS(state s, double rhs);
         double eightDist(state a, state b);
-        int    computeShortestPath(); // path computation
+        int    computeShortestPath(); 
         void   updatePredVerts(state s);
         void   updateVertex(state s);
         void   insert(state s);
         void   remove(state s);
         double trueDist(state a, state b);
-        double heuristic(state a, state b); // heursitc function
-        state  calculateKey(state s); // key value
-        void   getSucc(state s, list<state> &sts); // next nodes
-        void   getPred(state s, list<state> &sts); // prev nodes
+        double heuristic(state a, state b); 
+        state  calculateKey(state s); 
+        void   getSucc(state s, list<state> &sts); 
+        void   getPred(state s, list<state> &sts); 
         double cost(state a, state b);
-        bool   notTraversable(state s);   // inaccesible 
+        bool   notTraversable(state s); 
         bool   isValid(state s);
         float  keyHashCode(state s);
 
