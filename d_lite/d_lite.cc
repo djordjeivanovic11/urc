@@ -13,7 +13,7 @@
 * Set constraints
 */
 DstarLite::DstarLite() {
-    maxSteps = 2000000;  // steps before we give up
+    maxSteps = 4000000;  // steps before we give up - 4,000,000 cells, each is 1 meter 4 km^2 total
     C1       = 1;        // cost of an unknown cell
 }
 
@@ -171,7 +171,6 @@ double DstarLite::trueDist(state a, state b) {
 * computes the shortest path from start to goal,
 * per the paper
 */
-// todo finish
 int DstarLite::computeShortestPath() {
     list<state> s;
     list<state>::iterator i;
@@ -183,16 +182,13 @@ int DstarLite::computeShortestPath() {
             (prioQueueHash.top() < (s_start = calculateKey(s_start))) ||
             (getRHS(s_start) != getG(s_start))) {
         
-        // todo
-        // probably should have better error handeling here?
-        // maybe make it recalculate some of the states, or 'forget'
-        // any states that are blocking it? Not sure yet
         if (k-- == 0) {
             fprintf(stderr, "max steps\n");
             return -1;
         }
 
         state s;
+        bool test = (getRHS(s_start) != getG(s_start));
 
         // get our next state with lazy removal
         while (true) {
@@ -201,7 +197,7 @@ int DstarLite::computeShortestPath() {
 
             // if state isn't valid, try again
             if (!isValid(s)) continue;
-            // todo look into this, i should be checking more stuff here
+            if (!(s < s_start) && (!test)) return 2;
             break;
         }
 
@@ -214,7 +210,6 @@ int DstarLite::computeShortestPath() {
         } else {
             double sRHS = getRHS(s);
             
-            // todo lowkey don't understand this part
             if (getG(s) > sRHS) { // estimate got better
                 setG(s, sRHS);
 
@@ -272,17 +267,15 @@ void DstarLite::updateVertex(state s){
         }
         if (!close(getRHS(s), min_rhs)) setRHS(s, min_rhs);
 
+    // todo i did this but i don't remember why
     } if (cellOpenHash.find(s) != cellOpenHash.end()) {
         cellOpenHash.erase(s);
-        // todo this is wrong? I honestly don't know if i need this what is the point
         // will probably just make insert rmove it for us
     } if (!close(getG(s), getRHS(s))) {
-        calculateKey(s); // todo do i need this (will probably end up adding this to insert) (but then again maybe not)
         insert(s);
     }
 }
 
-// todo finalize this and finnish it
 /* void DstarLite::insert(state s)
 * calculates key (maybe), inserts, and removes any existing options (maybe or I might leave them?)
 */
@@ -439,9 +432,65 @@ void DstarLite::updateStart(int x, int y) {
 * also need it for when we first enter autonomous state
 */
 
-// todo 
 /* bool DstarLite::replan()
 * updates the costs for all cells, computes shortest path to goal
-* true iff a path is found, false otherwise
-* I have an idea of how to do this maybe
 */
+bool DstarLite::replan() {
+    path.clear();
+
+    int res = computeShortestPath();
+
+    if (isinf(res)) {
+        fprintf(stderr, "no path to goal");
+        return false;
+    }
+
+    list<state> s;
+    list<state>::iterator i;
+
+    state cur = s_start;
+
+    if (isinf(getG(s_start))) {
+        fprintf(stderr, "no path to goal");
+        return false;
+    }
+
+    while(cur != s_goal) {
+        path.push_back(cur);
+        getSucc(cur, s);
+
+        if (s.empty()) {
+            fprintf(stderr, "no path to goal");
+            return false;
+        }
+
+        double cmin = INF;
+        double tmin;
+        state smin;
+
+        for (i=s.begin(); i!=s.end(); i++) {
+
+            if (notTraversable(*i)) continue;
+            double val = cost(cur, *i);
+            double val2 = trueDist(*i, s_goal) + trueDist(s_start, *i);
+            val += getG(*i);
+
+            if (close(val, cmin)) {
+                if (tmin > val2) {
+                    tmin = val2;
+                    cmin = val;
+                    smin = *i;
+                }
+            } else if (val < cmin) {
+                tmin = val2;
+                cmin = val; 
+                smin = *i;
+            }
+        }
+        s.clear();
+        cur = smin;
+    }
+    path.push_back(s_goal);
+    return true;
+
+}

@@ -106,7 +106,7 @@ class DstarLite {
         void init(int sX, int sY, int gX, int gY);  // start and goal pos
         void updateCell(int x, int y, double val);  // pos to update
         void updateStart(int x, int y);             // new start pos
-        void updateGoal(int x, int y);              // new goal pos
+        void updateGoal(int x, int y);              // new goal pos // todo
         bool replan();                              // calc new path
         
         list<state> getPath();  // ret curr path
