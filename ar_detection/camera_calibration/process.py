@@ -41,11 +41,10 @@ cv2.destroyAllWindows()
 
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(list_cb_3D_points, list_cb_2D_img_points, gray.shape[::-1], None, None)
 
-print("Camera matrix : \n")
+print("Camera matrix :")
 print(mtx)
-print("dist : \n")
+print("dist :")
 print(dist)
 
-with open('camera_cal.npy', 'wb') as f:
-    np.save(f, mtx)
-    np.save(f, dist)
+with open('camera_cal.npz', 'wb') as f:
+    np.savez(f, mtx=mtx, dist=dist)

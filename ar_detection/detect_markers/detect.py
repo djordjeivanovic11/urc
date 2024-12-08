@@ -18,7 +18,7 @@ while True:
         # turning the frame to grayscale-only (for efficiency)
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         marker_corners, marker_IDs, reject = aruco.detectMarkers(
-            gray_frame, marker_dict, parameters=param_markers, l=0.2
+            gray_frame, marker_dict, parameters=param_markers
         )
         # marker_corners = {[TL, TR, BR, BL], [TL, TR, BR, BL], [TL, TR, BR, BL]}
         # marker_IDs,    = { 0,                1,                2              }
