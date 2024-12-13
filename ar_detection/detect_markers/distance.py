@@ -61,6 +61,19 @@ while True:
                 2,
                 cv2.LINE_AA,
             )
+            x = tvecs[i][0][0]
+            if (x < -30):
+                direction = "far left"
+            elif (x < -10):
+                direction = "left"
+            elif (x < 10):
+                direction = "center"
+            elif (x < 30):
+                direction = "right"
+            else:
+                direction = "far right"
+            print(f"Marker ID: {i}   Distance: {distance:.2f}   Direction: {direction}"), 
+
     cv2.imshow("frame", frame)
     key = cv2.waitKey(1)
     if key == ord("q"):
