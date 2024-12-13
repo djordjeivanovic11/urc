@@ -2,7 +2,7 @@ import cv2
 from cv2 import aruco
 import numpy as np
 
-data = np.load('camera_cal.npz')
+data = np.load('./urc/ar_detection/camera_calibration/camera_cal.npz')
 mtx = data['mtx']
 dist = data['dist']
 
