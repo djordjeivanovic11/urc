@@ -17,7 +17,7 @@ cb_3D_points[:, :2] = np.mgrid[0:cb_width, 0:cb_height].T.reshape(-1, 2) * cb_sq
 list_cb_3D_points = [] # 3d point in real world space
 list_cb_2D_img_points = [] # 2d points in image plane.
 
-list_images = glob.glob('./urc/ar_detection/camera_calibration/images/*.jpg')
+list_images = glob.glob('./ar_detection/camera_calibration/images/*.jpg')
 
 for frame_name in list_images:
     img = cv2.imread(frame_name)
@@ -43,8 +43,8 @@ ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(list_cb_3D_points, list_cb_2D
 
 print("Camera matrix :")
 print(mtx)
-print("dist :")
+print("Distortion matrix :")
 print(dist)
 
-with open('./urc/ar_detection/camera_calibration/camera_cal.npz', 'wb') as f:
+with open('./ar_detection/camera_calibration/camera_cal.npz', 'wb') as f:
     np.savez(f, mtx=mtx, dist=dist)
